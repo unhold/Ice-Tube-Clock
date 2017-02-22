@@ -39,7 +39,9 @@ THE SOFTWARE.
 #include "util.h"
 #include "fonttable.h"
 
-uint8_t region = REGION_US;
+uint8_t region = REGION_EU;
+
+uint8_t show_seconds = 0;
 
 // These variables store the current time.
 volatile uint8_t time_s, time_m, time_h;
@@ -1131,6 +1133,7 @@ void set_time(void)
 	display[5] |= 0x1;
       } else if (mode == SET_MIN) {
 	mode = SET_SEC;
+	show_seconds = 1;
 	display_time(hour, min, sec);
 	display[7] |= 0x1;
 	display[8] |= 0x1;
@@ -1167,6 +1170,7 @@ void set_time(void)
       }
       if ((mode == SET_SEC) ) {
 	sec = (sec+1) % 60;
+	show_seconds = 1;
 	display_time(hour, min, sec);
 	display[7] |= 0x1;
 	display[8] |= 0x1;
@@ -1798,6 +1802,7 @@ SIGNAL(SIG_ADC) {
     val = BRIGHTNESS_MAX - (((unsigned long)(BRIGHTNESS_MAX - BRIGHTNESS_MIN)) *
         (val - PHOTOCELL_LIGHT)) / (PHOTOCELL_DARK - PHOTOCELL_LIGHT);
   }
+  show_seconds =  val > BRIGHTNESS_SEC ? 1 : 0;
   set_vfd_brightness(val);
 }
 #endif
@@ -1949,8 +1954,13 @@ void display_date(uint8_t style) {
 void display_time(uint8_t h, uint8_t m, uint8_t s) {
   
   // seconds and minutes are at the end
-  display[8] =  pgm_read_byte(numbertable_p + (s % 10));
-  display[7] =  pgm_read_byte(numbertable_p + (s / 10));
+  if (show_seconds) {
+	display[8] =  pgm_read_byte(numbertable_p + (s % 10));
+	display[7] =  pgm_read_byte(numbertable_p + (s / 10));
+  } else {
+  	display[8] = 0;
+  	display[7] = 0;
+  }
   display[6] = 0;
   display[5] =  pgm_read_byte(numbertable_p + (m % 10));
   display[4] =  pgm_read_byte(numbertable_p + (m / 10)); 

@@ -32,7 +32,7 @@ THE SOFTWARE.
 // Display digit "9" in the usual way (instead of the default with no bottom segment)
 #define FEATURE_9
 // Enables Canada's/USA's Daylight Saving Time, under the current rules.
-#define FEATURE_DST
+//#define FEATURE_DST
 // Allows Testing of the Hardware.  If FEATURE_AUTODIM is enabled, it will
 // include testing of the hax0r port photocell.
 #define FEATURE_TESTMODE
@@ -59,12 +59,17 @@ THE SOFTWARE.
 #define MAXSNOOZE 600 // 10 minutes
 #define INACTIVITYTIMEOUT 10 // how many seconds we will wait before turning off menus
 
-#define BRIGHTNESS_MAX 90
-#define BRIGHTNESS_MIN 30
+//#define BRIGHTNESS_MAX 90
+//#define BRIGHTNESS_MIN 30
+#define BRIGHTNESS_MAX 95
+#define BRIGHTNESS_MIN 20
+#define BRIGHTNESS_SEC 35
 #define BRIGHTNESS_INCREMENT 5
 
-#define PHOTOCELL_DARK 1010
-#define PHOTOCELL_LIGHT 500
+//#define PHOTOCELL_DARK 1010
+//#define PHOTOCELL_LIGHT 500
+#define PHOTOCELL_DARK 1025
+#define PHOTOCELL_LIGHT 480
 
 #define BEEP_8KHZ 5
 #define BEEP_4KHZ 10
