@@ -43,9 +43,9 @@ CFLAGS = -g -O$(OPT) \
 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums \
 -Wall -Wstrict-prototypes \
 -DF_CPU=$(F_CPU) \
-`perl timedef.pl` \
 -Wa,-adhlns=$(<:.c=.lst) \
 $(patsubst %,-I%,$(EXTRAINCDIRS))
+#`perl timedef.pl` \
 
 
 # Set a "language standard" compiler flag.
@@ -127,6 +127,8 @@ AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 # to submit bug reports.
 #AVRDUDE_FLAGS += -v -v
 
+AVRDUDE_BFLAG = -B 1
+
 
 
 
@@ -202,8 +204,8 @@ all: begin gccversion sizebefore $(TARGET).elf $(TARGET).hex $(TARGET).eep \
 
 full: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) -u -U lfuse:w:0xE2:m -u -U hfuse:w:0xc6:m
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -B 1 -U flash:w:$< 
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -B 1 -U eeprom:w:iveep.hex
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_BFLAG) -U flash:w:$< 
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_BFLAG) -U eeprom:w:iveep.hex
 
 
 burn-fuse: 
@@ -268,7 +270,7 @@ extcoff: $(TARGET).elf
 
 # Program the device.  
 program: $(TARGET).hex $(TARGET).eep
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -B 1 -U flash:w:$< 
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_BFLAG) -U flash:w:$< 
 
 
 # Create final output files (.hex, .eep) from ELF output file.

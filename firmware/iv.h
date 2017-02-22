@@ -1,6 +1,11 @@
 /***************************************************************************
  Ice Tube Clock firmware August 13, 2009
  (c) 2009 Limor Fried / Adafruit Industries
+ Modifications by Len Popp
+ Original auto-dimmer mod by Dave Parker
+ Button interrupt fix by caitsith2
+ Daylight Saving Time code by caitsith2
+ Testmode feature by caitsith2
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +26,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
+// Optional Features - #define these or not as desired.
+// Auto-dimmer - requires a photocell hooked up to the hax0r port
+#define FEATURE_AUTODIM
+// Display digit "9" in the usual way (instead of the default with no bottom segment)
+#define FEATURE_9
+// Enables Canada's/USA's Daylight Saving Time, under the current rules.
+#define FEATURE_DST
+// Allows Testing of the Hardware.  If FEATURE_AUTODIM is enabled, it will
+// include testing of the hax0r port photocell.
+#define FEATURE_TESTMODE
+// Allows setting how long a snooze period lasts for. (10 minutes default.)
+// LadyAda implemented this, then commented it out.  I (caitsith2) just turned 
+// it into defines. 
+//#define FEATURE_SETSNOOZETIME
 
 #define halt(x)  while (1)
 
@@ -40,12 +59,19 @@ THE SOFTWARE.
 #define MAXSNOOZE 600 // 10 minutes
 #define INACTIVITYTIMEOUT 10 // how many seconds we will wait before turning off menus
 
+#define BRIGHTNESS_MAX 90
+#define BRIGHTNESS_MIN 30
+#define BRIGHTNESS_INCREMENT 5
+
+#define PHOTOCELL_DARK 1010
+#define PHOTOCELL_LIGHT 500
 
 #define BEEP_8KHZ 5
 #define BEEP_4KHZ 10
 #define BEEP_2KHZ 20
 #define BEEP_1KHZ 40
 
+#define EE_INIT 0
 #define EE_YEAR 1
 #define EE_MONTH 2
 #define EE_DAY 3
@@ -58,21 +84,30 @@ THE SOFTWARE.
 #define EE_VOLUME 10
 #define EE_REGION 11
 #define EE_SNOOZE 12
+#define EE_DST 14
 
 void delay(uint16_t delay);
 
 void (*app_start)(void) = 0x0000;
 
+// Add Initialization routine defines here.
+void init_eeprom(void);
 void clock_init(void);
 void initbuttons(void);
 void boost_init(uint8_t pwm);
 void vfd_init(void);
+void set_vfd_brightness(uint8_t brightness);
 void speaker_init(void);
+#ifdef FEATURE_AUTODIM
+void dimmer_init(void);
+void dimmer_update(void);
+#endif
 
 void display_time(uint8_t h, uint8_t m, uint8_t s);
 void display_date(uint8_t style);
 void display_str(char *s);
 void display_alarm(uint8_t h, uint8_t m);
+void display_brightness(int brightness);
 
 void set_time(void);
 void set_alarm(void);
@@ -81,11 +116,14 @@ void set_brightness(void);
 void set_volume(void);
 void set_region(void);
 void set_snooze(void); // not activated by default
+void set_dst(void);
+void set_test(void);
 
 void beep(uint16_t freq, uint8_t times);
 void tick(void);
 
 uint8_t leapyear(uint16_t y);
+uint8_t dotw(void);
 void setalarmstate(void);
 
 void setdisplay(uint8_t digit, uint8_t segments);
@@ -106,6 +144,8 @@ void spi_xfer(uint8_t c);
 #define SET_REGION 8
 #define SHOW_SNOOZE 9
 #define SET_SNOOZE 10
+#define TESTMODE 12
+#define SET_DAYLIGHTSAVINGTIME 13
 
 // sub-mode settings
 #define SHOW_MENU 0
@@ -123,6 +163,8 @@ void spi_xfer(uint8_t c);
 #define SET_VOL 1
 //region
 #define SET_REG 1
+//dst
+#define SET_DST 1
 
 #define BOOST PD6
 #define BOOST_DDR DDRD
@@ -157,6 +199,12 @@ void spi_xfer(uint8_t c);
 #define SPK2 PB2
 #define SPK_PORT PORTB
 #define SPK_DDR DDRB
+
+#define DIMMER_POWER_PORT PORTC
+#define DIMMER_POWER_DDR DDRC
+#define DIMMER_POWER_PIN PC5
+#define DIMMER_SENSE_PIN MUX2
+#define DIMMER_SENSE_PIND ADC4D
 
 #define SEG_A 19
 #define SEG_B 17
