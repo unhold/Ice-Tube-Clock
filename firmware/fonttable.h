@@ -27,7 +27,7 @@ const uint8_t alphatable[] PROGMEM = {
 	0xDA, //z
 	/* more */
 };
-PGM_P alphatable_p PROGMEM = alphatable;
+const uint8_t *const alphatable_p PROGMEM = alphatable;
 
 const uint8_t numbertable[] PROGMEM = { 
   0xFC /* 0 */, 
@@ -48,4 +48,4 @@ const uint8_t numbertable[] PROGMEM = {
   0xE6, /* 9 */
 #endif
 };
-PGM_P numbertable_p PROGMEM = numbertable;
+const uint8_t *const numbertable_p PROGMEM = numbertable;
